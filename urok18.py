@@ -112,3 +112,5 @@ def home (session: Session = Depends(get_session)
 
 app.include_router(public_router)
 app.include_router(admin_router)
+
+a = 342343
