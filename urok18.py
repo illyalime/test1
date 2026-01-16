@@ -77,5 +77,38 @@ async def admin_only_middleware(request: Request, call_next):
 # 🔗 Підключення router'ів
 # ==================================================
 
+ATABASE_URL = "sqlite:///todos.db"
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=True  # показує SQL-запити (ДУЖЕ корисно для навчання)
+)
+def get_session():
+    """
+    Dependency:
+    відкриває сесію БД
+    і автоматично закриває її після запиту
+    """
+    with Session(engine) as session:
+        yield session
+
+app = FastAPI(title="Todo API with Database")
+
+class Todo(SQLModel, table=True):
+    """
+    Це ТАБЛИЦЯ в базі даних
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    description: Optional[str] = None
+    done: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+@app.get("/")
+def home (session: Session = Depends(get_session)
+):
+    todos = session.exec(select(Todo)).all()
+    return todos
+
 app.include_router(public_router)
 app.include_router(admin_router)
